@@ -62,6 +62,46 @@ skill-name/
 
 - [flutter-architecture](./skills/flutter-architecture/) - Flutter 四层组件化 + MVVM 项目架构规范
 
+## 在项目中使用 Skill
+
+### 方式一：直接复制（推荐）
+
+将需要的 Skill 文件复制到你的项目中：
+
+```bash
+# 复制整个 Skill 目录
+cp -r PipeDog-SkillHub/skills/flutter-architecture/ ./your-project/docs/
+```
+
+### 方式二：Git Submodule
+
+将 SkillHub 作为子模块引入项目：
+
+```bash
+# 添加为子模块
+git submodule add git@github.com:PipeDog/PipeDog-SkillHub.git third_party/SkillHub
+
+# 更新子模块
+git submodule update --init --recursive
+
+# 之后更新
+cd third_party/SkillHub && git pull && cd -
+```
+
+### 方式三：Git Subtree
+
+```bash
+# 共享 Skill 到项目
+git subtree add --prefix=docs/skills/PipeDog-SkillHub git@github.com:PipeDog/PipeDog-SkillHub main --squash
+
+# 后续更新
+git subtree pull --prefix=docs/skills/PipeDog-SkillHub git@github.com:PipeDog/PipeDog-SkillHub main --squash
+```
+
+## 搜索 Skill
+
+- [flutter-architecture](./skills/flutter-architecture/) - Flutter 四层组件化 + MVVM 项目架构规范
+
 ## 搜索 Skill
 
 ```bash
