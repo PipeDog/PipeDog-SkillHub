@@ -55,6 +55,9 @@ skill-manager search flutter
 # 安装 Skill 到项目
 skill-manager install flutter-architecture
 
+# 安装到 Cursor 编辑器（.cursor/skills/）
+skill-manager install flutter-architecture cursor
+
 # 安装到指定目录
 skill-manager install flutter-architecture docs/
 
@@ -103,6 +106,9 @@ skill-name/
 ```bash
 # 安装到当前项目
 skill-manager install flutter-architecture
+
+# 安装到 Cursor 编辑器（.cursor/skills/）
+skill-manager install flutter-architecture cursor
 
 # 安装到指定目录
 skill-manager install flutter-architecture docs/
