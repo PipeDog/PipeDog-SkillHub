@@ -20,7 +20,7 @@ SkillHub/
 ### 1. 克隆项目
 
 ```bash
-git clone git@github.com:PipeDog/PipeDog-SkillHub.git
+git clone https://github.com/PipeDog/PipeDog-SkillHub.git
 cd PipeDog-SkillHub
 ```
 
@@ -29,10 +29,12 @@ cd PipeDog-SkillHub
 将项目添加到 PATH，随时使用：
 
 ```bash
-# 在 ~/.zshrc 中添加
+# 在 ~/.zshrc 中添加（将 /path/to 替换为你的实际路径）
 echo 'export PATH="/path/to/PipeDog-SkillHub:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
+
+> 例如：`${HOME}/Desktop/PipeDog-SkillHub` 或绝对路径 `/Users/leiliang/Desktop/PipeDog-SkillHub`
 
 ### 3. 使用 skill-manager 安装 Skills
 
@@ -108,7 +110,7 @@ cp -r PipeDog-SkillHub/skills/flutter-architecture/ ./your-project/docs/
 ### 方式三：Git Submodule
 
 ```bash
-git submodule add git@github.com:PipeDog/PipeDog-SkillHub.git third_party/SkillHub
+git submodule add https://github.com/PipeDog/PipeDog-SkillHub.git third_party/SkillHub
 ```
 
 ## 搜索 Skill

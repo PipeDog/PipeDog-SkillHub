@@ -1,6 +1,7 @@
 ---
 name: flutter-architecture
-description: Flutter 四层组件化 + MVVM 项目架构规范。适用于 Flutter 项目开发、新模块创建、目录结构设计、代码评审、架构对齐。支持在项目中直接创建/搭建整套 MVVM+组件化目录结构。当用户涉及 Flutter 架构、分层设计、MVVM、业务模块拆分、page/view 命名、依赖规则、创建目录、scaffold、脚手架时使用。
+tags: flutter, architecture, mvvm, scaffold, template
+description: Flutter 四层组件化 + MVVM 项目架构规范。适用于 Flutter 项目开发、新模块创建、目录结构设计、代码评审、架构对齐。支持在项目中直接创建/搭建整套 MVVM+组件化目录结构。
 ---
 
 # Flutter 组件化 + MVVM 架构规范

@@ -1,3 +1,9 @@
+---
+name: skill-manager
+tags: tool, cli, installer, workflow
+description: Skill 管理器，用于安装 SkillHub 中的 Skills 到项目或全局。提供 list、search、install、install-global 等命令。
+---
+
 # Skill Manager - Skill 安装工具
 
 > Skill 管理器，用于安装 SkillHub 中的 Skills 到项目或全局
@@ -18,7 +24,7 @@
 ### 方式一：克隆项目
 
 ```bash
-git clone git@github.com:PipeDog/PipeDog-SkillHub.git
+git clone https://github.com/PipeDog/PipeDog-SkillHub.git
 cd PipeDog-SkillHub
 ```
 
