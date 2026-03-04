@@ -63,6 +63,9 @@ skill-manager install flutter-architecture docs/
 
 # 全局安装
 skill-manager install-global flutter-architecture
+
+# 更新 PipeDog-SkillHub（拉取最新 Skills 等）
+skill-manager repo update
 ```
 
 ### 3. 添加新 Skill
