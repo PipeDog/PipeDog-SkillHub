@@ -17,14 +17,7 @@ SkillHub/
 
 ## 快速开始
 
-### 1. 克隆项目
-
-```bash
-git clone https://github.com/PipeDog/PipeDog-SkillHub.git
-cd PipeDog-SkillHub
-```
-
-### 2. 安装 skill-manager
+### 1. 安装 skill-manager
 
 #### 方式一：通过提示词安装（推荐，无需克隆项目）
 
@@ -36,19 +29,21 @@ cd PipeDog-SkillHub
 
 > **安装路径说明**：通过提示词安装时，skill-manager 将默认 clone 并安装到用户目录下的 `.skill-manager` 目录（隐藏目录，以 `.` 为前缀），即 `~/.skill-manager`。
 
-#### 方式二：手动安装（克隆项目后添加到 PATH）
-
-将项目添加到 PATH，随时使用：
+#### 方式二：手动安装（需先克隆项目）
 
 ```bash
-# 在 ~/.zshrc 中添加（将 /path/to 替换为你的实际路径）
+# 1. 克隆项目
+git clone https://github.com/PipeDog/PipeDog-SkillHub.git
+cd PipeDog-SkillHub
+
+# 2. 将项目添加到 PATH（将 /path/to 替换为你的实际路径）
 echo 'export PATH="/path/to/PipeDog-SkillHub:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 > 例如：`${HOME}/Desktop/PipeDog-SkillHub` 或绝对路径 `/Users/leiliang/Desktop/PipeDog-SkillHub`
 
-### 3. 使用 skill-manager 安装 Skills
+### 2. 使用 skill-manager 安装 Skills
 
 ```bash
 # 列出所有 Skills
@@ -67,7 +62,7 @@ skill-manager install flutter-architecture docs/
 skill-manager install-global flutter-architecture
 ```
 
-### 4. 添加新 Skill
+### 3. 添加新 Skill
 
 在 `skills/` 目录下创建新的文件夹：
 
@@ -79,7 +74,7 @@ skills/
         └── *.md
 ```
 
-### 5. 同步到 GitHub
+### 4. 同步到 GitHub
 
 ```bash
 ./skill-sync "feat: 添加 XXX Skill"
