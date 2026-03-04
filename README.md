@@ -6,8 +6,9 @@
 
 ```
 SkillHub/
-├── skills/              # 所有 Skill 文件（扁平化存储，按目录区分）
+├── skills/              # 所有 Skill 文件（按目录区分）
 │   └── {skill-name}/    # 每个 Skill 一个独立目录
+├── skill-manager        # Skill 安装工具
 ├── skill-sync           # 一键同步脚本
 ├── README.md            # 项目说明
 ├── SKILLS.md            # Skill 索引
@@ -23,27 +24,50 @@ git clone git@github.com:PipeDog/PipeDog-SkillHub.git
 cd PipeDog-SkillHub
 ```
 
-### 2. 添加新 Skill
+### 2. 安装 skill-manager（推荐）
 
-在 `skills/` 目录下创建新的文件夹，每个 Skill 独立存放：
+将项目添加到 PATH，随时使用：
+
+```bash
+# 在 ~/.zshrc 中添加
+echo 'export PATH="/path/to/PipeDog-SkillHub:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+### 3. 使用 skill-manager 安装 Skills
+
+```bash
+# 列出所有 Skills
+skill-manager list
+
+# 搜索 Skill
+skill-manager search flutter
+
+# 安装 Skill 到项目
+skill-manager install flutter-architecture
+
+# 安装到指定目录
+skill-manager install flutter-architecture docs/
+
+# 全局安装
+skill-manager install-global flutter-architecture
+```
+
+### 4. 添加新 Skill
+
+在 `skills/` 目录下创建新的文件夹：
 
 ```
 skills/
 └── your-skill-name/
     ├── SKILL.md         # Skill 主文件（必需）
-└── references/      # 参考资料（可选）
-    └── *.md
+    └── references/      # 参考资料（可选）
+        └── *.md
 ```
 
-### 3. 同步到 GitHub
-
-添加或更新 Skill 后，一键推送：
+### 5. 同步到 GitHub
 
 ```bash
-# 默认提交信息
-./skill-sync
-
-# 自定义提交信息
 ./skill-sync "feat: 添加 XXX Skill"
 ```
 
@@ -54,70 +78,50 @@ skills/
 ```
 skill-name/
 ├── SKILL.md         # 必需：Skill 核心内容
-└── references/      # 可选：参考资料、文档链接
+└── references/      # 可选：参考资料
     └── *.md
 ```
 
-## 示例 Skill
+## 示例 Skills
 
 - [flutter-architecture](./skills/flutter-architecture/) - Flutter 四层组件化 + MVVM 项目架构规范
+- [skill-manager](./skills/skill-manager/) - Skill 安装工具
 
-## 在项目中使用 Skill
+## 在其他项目中使用 Skill
 
-### 方式一：直接复制（推荐）
-
-将需要的 Skill 文件复制到你的项目中：
+### 方式一：使用 skill-manager（推荐）
 
 ```bash
-# 复制整个 Skill 目录
+# 安装到当前项目
+skill-manager install flutter-architecture
+
+# 安装到指定目录
+skill-manager install flutter-architecture docs/
+```
+
+### 方式二：直接复制
+
+```bash
 cp -r PipeDog-SkillHub/skills/flutter-architecture/ ./your-project/docs/
 ```
 
-### 方式二：Git Submodule
-
-将 SkillHub 作为子模块引入项目：
+### 方式三：Git Submodule
 
 ```bash
-# 添加为子模块
 git submodule add git@github.com:PipeDog/PipeDog-SkillHub.git third_party/SkillHub
-
-# 更新子模块
-git submodule update --init --recursive
-
-# 之后更新
-cd third_party/SkillHub && git pull && cd -
-```
-
-### 方式三：Git Subtree
-
-```bash
-# 共享 Skill 到项目
-git subtree add --prefix=docs/skills/PipeDog-SkillHub git@github.com:PipeDog/PipeDog-SkillHub main --squash
-
-# 后续更新
-git subtree pull --prefix=docs/skills/PipeDog-SkillHub git@github.com:PipeDog/PipeDog-SkillHub main --squash
 ```
 
 ## 搜索 Skill
 
-- [flutter-architecture](./skills/flutter-architecture/) - Flutter 四层组件化 + MVVM 项目架构规范
-
-## 搜索 Skill
-
 ```bash
-# 按文件名搜索
-ls skills/ | grep <关键词>
+# 使用 skill-manager
+skill-manager search <关键词>
 
-# 按内容搜索
+# 使用 grep
 grep -r "<关键词>" skills/
-
-# 搜索特定 Skill
-ls skills/*/
 ```
 
 ## 提交规范
-
-使用 `skill-sync` 脚本时，遵循以下提交类型：
 
 | 类型 | 说明 |
 |------|------|
