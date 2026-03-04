@@ -24,7 +24,19 @@ git clone https://github.com/PipeDog/PipeDog-SkillHub.git
 cd PipeDog-SkillHub
 ```
 
-### 2. 安装 skill-manager（推荐）
+### 2. 安装 skill-manager
+
+#### 方式一：通过提示词安装（推荐，无需克隆项目）
+
+将以下提示词复制给 AI 助手（如 Cursor、Codex 等），即可自动完成安装：
+
+```
+请通过 https://github.com/PipeDog/PipeDog-SkillHub/blob/main/README.md 中所提供的方案在全局安装 skill-manager，安装成功后验证 skill-manager 的功能是否可以正常使用，并告知用户安装结果
+```
+
+> **安装路径说明**：通过提示词安装时，skill-manager 将默认 clone 并安装到用户目录下的 `.skill-manager` 目录（隐藏目录，以 `.` 为前缀），即 `~/.skill-manager`。
+
+#### 方式二：手动安装（克隆项目后添加到 PATH）
 
 将项目添加到 PATH，随时使用：
 
@@ -125,11 +137,11 @@ grep -r "<关键词>" skills/
 
 ## 提交规范
 
-| 类型 | 说明 |
-|------|------|
-| `feat:` | 新增 Skill |
-| `fix:` | 修复/更新 Skill 内容 |
-| `docs:` | 文档更新 |
+| 类型    | 说明                 |
+| ------- | -------------------- |
+| `feat:` | 新增 Skill           |
+| `fix:`  | 修复/更新 Skill 内容 |
+| `docs:` | 文档更新             |
 
 ## License
 
