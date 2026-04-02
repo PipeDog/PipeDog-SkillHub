@@ -58,11 +58,21 @@ skill-manager install flutter-architecture
 # 安装到 Cursor 编辑器（.cursor/skills/）
 skill-manager install flutter-architecture cursor
 
+# 安装到 Codex（自动检测 .codex/skills/ 或 .agents/skills/）
+skill-manager install flutter-architecture codex
+
 # 安装到指定目录
 skill-manager install flutter-architecture docs/
 
 # 全局安装
 skill-manager install-global flutter-architecture
+
+# 全局安装到 Codex（自动检测 ~/.codex/skills/ 或 ~/.agents/skills/）
+skill-manager install-global flutter-architecture codex
+
+# 全局安装到指定 Codex 目录
+skill-manager install-global flutter-architecture codex-user
+skill-manager install-global flutter-architecture codex-official
 
 # 更新 PipeDog-SkillHub（拉取最新 Skills 等）
 skill-manager repo update
@@ -113,9 +123,26 @@ skill-manager install flutter-architecture
 # 安装到 Cursor 编辑器（.cursor/skills/）
 skill-manager install flutter-architecture cursor
 
+# 安装到 Codex（自动检测 .codex/skills/ 或 .agents/skills/）
+skill-manager install flutter-architecture codex
+
 # 安装到指定目录
 skill-manager install flutter-architecture docs/
 ```
+
+### Codex 安装路径规则
+
+- 项目级 `codex`：
+  - 优先安装到 `.codex/skills/`
+  - 若不存在，则尝试 `.agents/skills/`
+  - 若两者都不存在，默认创建 `.codex/skills/`
+- 全局级 `codex`：
+  - 优先安装到 `~/.codex/skills/`
+  - 若不存在，则尝试 `~/.agents/skills/`
+  - 若两者都不存在，默认创建 `~/.codex/skills/`
+- 也支持显式指定：
+  - 项目级：`.codex/skills`、`.agents/skills`
+  - 全局级：`codex-user`、`codex-official`
 
 ### 方式二：直接复制
 

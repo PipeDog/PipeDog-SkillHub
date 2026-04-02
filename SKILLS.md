@@ -101,6 +101,12 @@ skill-manager search prompt
 # 安装到当前项目
 skill-manager install flutter-architecture
 
+# 安装到 Codex
+skill-manager install flutter-architecture codex
+
 # 全局安装
 skill-manager install-global flutter-architecture
+
+# 全局安装到 Codex
+skill-manager install-global flutter-architecture codex
 ```

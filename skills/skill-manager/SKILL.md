@@ -18,6 +18,7 @@ description: Skill 管理器，用于安装 SkillHub 中的 Skills 到项目或�
 - 搜索 Skills
 - 安装 Skill 到当前项目
 - 安装 Skill 到全局
+- 支持安装到 Codex Skill 目录
 
 ## 安装
 
@@ -69,6 +70,19 @@ skill-manager install flutter-architecture
 skill-manager install flutter-architecture docs/
 ```
 
+安装到 Codex（自动检测）：
+
+```bash
+skill-manager install flutter-architecture codex
+```
+
+显式安装到 Codex 目录：
+
+```bash
+skill-manager install flutter-architecture .codex/skills
+skill-manager install flutter-architecture .agents/skills
+```
+
 ### 安装 Skill 到全局
 
 ```bash
@@ -78,6 +92,22 @@ skill-manager install-global flutter-architecture
 ```
 
 全局安装位置：`~/.skill-manager/skills/`
+
+全局安装到 Codex：
+
+```bash
+skill-manager install-global flutter-architecture codex
+skill-manager install-global flutter-architecture codex-user
+skill-manager install-global flutter-architecture codex-official
+```
+
+路径规则：
+
+- 项目级 `codex`：优先 `.codex/skills`，否则 `.agents/skills`，若都不存在则创建 `.codex/skills`
+- 全局级 `codex`：优先 `~/.codex/skills`，否则 `~/.agents/skills`，若都不存在则创建 `~/.codex/skills`
+- 全局显式别名：
+  - `codex-user` -> `~/.codex/skills`
+  - `codex-official` -> `~/.agents/skills`
 
 ## 可用 Skills
 
@@ -96,6 +126,16 @@ cd my-new-flutter-project
 
 # 安装 Flutter 架构规范
 skill-manager install flutter-architecture docs/
+```
+
+### 安装到 Codex
+
+```bash
+# 自动安装到当前项目使用的 Codex skills 目录
+skill-manager install flutter-architecture codex
+
+# 自动安装到用户级 Codex skills 目录
+skill-manager install-global flutter-architecture codex
 ```
 
 ### 全局保留常用技能
@@ -121,7 +161,9 @@ git pull origin main
 - 纯 Bash 脚本，无外部依赖
 - 使用 `cp -r` 复制文件
 - 全局安装使用 `~/.skill-manager/` 目录
+- 支持 Codex 目录自动检测与显式安装
 
 ## 更新日志
 
 - `2026-03-04` - 初始版本
+- `2026-04-02` - 新增 Codex 安装目标与自动检测规则

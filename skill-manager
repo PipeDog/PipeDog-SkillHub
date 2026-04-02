@@ -16,6 +16,11 @@ NC='\033[0m' # No Color
 REPO_URL="https://github.com/PipeDog/PipeDog-SkillHub.git"
 REPO_NAME="PipeDog-SkillHub"
 GLOBAL_DIR="${HOME}/.skill-manager/skills"
+PROJECT_CURSOR_DIR=".cursor/skills"
+PROJECT_CODEX_DIR=".codex/skills"
+PROJECT_CODEX_OFFICIAL_DIR=".agents/skills"
+GLOBAL_CODEX_DIR="${HOME}/.codex/skills"
+GLOBAL_CODEX_OFFICIAL_DIR="${HOME}/.agents/skills"
 
 # 获取脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -31,7 +36,7 @@ usage() {
     echo "命令:"
     echo "  list                  列出所有可用的 Skills"
     echo "  install <skill-name> [目标目录]  安装 Skill 到当前项目"
-    echo "  install-global <skill-name>  安装 Skill 到全局"
+    echo "  install-global <skill-name> [目标目录]  安装 Skill 到全局"
     echo "  search <keyword>      搜索 Skill"
     echo "  repo update          更新 PipeDog-SkillHub 仓库（拉取最新 Skills 等）"
     echo "  help                  显示帮助"
@@ -40,9 +45,83 @@ usage() {
     echo "  skill-manager list"
     echo "  skill-manager install flutter-architecture"
     echo "  skill-manager install flutter-architecture cursor   # 安装到 .cursor/skills/（Cursor 编辑器）"
+    echo "  skill-manager install flutter-architecture codex    # 自动安装到 .codex/skills/ 或 .agents/skills/"
     echo "  skill-manager install-global flutter-architecture"
+    echo "  skill-manager install-global flutter-architecture codex"
     echo "  skill-manager search flutter"
     echo "  skill-manager repo update   # 一键更新 PipeDog-SkillHub"
+}
+
+detect_project_codex_dir() {
+    if [ -d "${PROJECT_CODEX_DIR}" ]; then
+        echo "${PROJECT_CODEX_DIR}"
+    elif [ -d "${PROJECT_CODEX_OFFICIAL_DIR}" ]; then
+        echo "${PROJECT_CODEX_OFFICIAL_DIR}"
+    else
+        echo "${PROJECT_CODEX_DIR}"
+    fi
+}
+
+detect_global_codex_dir() {
+    if [ -d "${GLOBAL_CODEX_DIR}" ]; then
+        echo "${GLOBAL_CODEX_DIR}"
+    elif [ -d "${GLOBAL_CODEX_OFFICIAL_DIR}" ]; then
+        echo "${GLOBAL_CODEX_OFFICIAL_DIR}"
+    else
+        echo "${GLOBAL_CODEX_DIR}"
+    fi
+}
+
+resolve_project_target_dir() {
+    local target_dir_raw="${1:-skills}"
+
+    case "${target_dir_raw}" in
+        cursor|.cursor/skills)
+            echo "${PROJECT_CURSOR_DIR}"
+            ;;
+        codex)
+            detect_project_codex_dir
+            ;;
+        .codex/skills|.agents/skills)
+            echo "${target_dir_raw}"
+            ;;
+        *)
+            echo "${target_dir_raw}"
+            ;;
+    esac
+}
+
+resolve_global_target_dir() {
+    local target_dir_raw="${1:-${GLOBAL_DIR}}"
+
+    case "${target_dir_raw}" in
+        codex)
+            detect_global_codex_dir
+            ;;
+        codex-user)
+            echo "${GLOBAL_CODEX_DIR}"
+            ;;
+        codex-official)
+            echo "${GLOBAL_CODEX_OFFICIAL_DIR}"
+            ;;
+        *)
+            echo "${target_dir_raw}"
+            ;;
+    esac
+}
+
+copy_skill_to_target() {
+    local source_dir="$1"
+    local target_dir="$2"
+    local skill_name="$3"
+
+    mkdir -p "${target_dir}"
+
+    echo -e "${GREEN}安装 ${skill_name} 到 ${target_dir}...${NC}"
+    cp -r "${source_dir}" "${target_dir}/"
+
+    echo -e "${GREEN}✅ 安装完成！${NC}"
+    echo "已安装到: ${target_dir}/${skill_name}"
 }
 
 # 列出所有 Skills
@@ -125,13 +204,8 @@ cmd_install() {
         exit 1
     fi
     
-    # 兼容 Cursor 编辑器：cursor 或 .cursor/skills 解析为 .cursor/skills/
     local target_dir
-    if [ "${target_dir_raw}" = "cursor" ] || [ "${target_dir_raw}" = ".cursor/skills" ]; then
-        target_dir=".cursor/skills"
-    else
-        target_dir="${target_dir_raw}"
-    fi
+    target_dir="$(resolve_project_target_dir "${target_dir_raw}")"
     
     local source_dir="${SKILLS_DIR}/${skill_name}"
     
@@ -143,20 +217,13 @@ cmd_install() {
         exit 1
     fi
     
-    # 确保目标目录存在
-    mkdir -p "${target_dir}"
-    
-    # 复制文件
-    echo -e "${GREEN}安装 ${skill_name} 到 ${target_dir}...${NC}"
-    cp -r "${source_dir}" "${target_dir}/"
-    
-    echo -e "${GREEN}✅ 安装完成！${NC}"
-    echo "已安装到: ${target_dir}/${skill_name}"
+    copy_skill_to_target "${source_dir}" "${target_dir}" "${skill_name}"
 }
 
 # 安装 Skill 到全局
 cmd_install_global() {
     local skill_name="$1"
+    local target_dir_raw="${2:-${GLOBAL_DIR}}"
     
     if [ -z "${skill_name}" ]; then
         echo -e "${RED}错误: 请指定要安装的 Skill 名称${NC}"
@@ -173,15 +240,10 @@ cmd_install_global() {
         exit 1
     fi
     
-    # 创建全局目录
-    mkdir -p "${GLOBAL_DIR}"
-    
-    # 复制文件
-    echo -e "${GREEN}全局安装 ${skill_name}...${NC}"
-    cp -r "${source_dir}" "${GLOBAL_DIR}/"
-    
-    echo -e "${GREEN}✅ 全局安装完成！${NC}"
-    echo "已安装到: ${GLOBAL_DIR}/${skill_name}"
+    local target_dir
+    target_dir="$(resolve_global_target_dir "${target_dir_raw}")"
+
+    copy_skill_to_target "${source_dir}" "${target_dir}" "${skill_name}"
 }
 
 # 更新 PipeDog-SkillHub 仓库
@@ -276,7 +338,7 @@ case "${COMMAND}" in
         cmd_install "$2" "$3"
         ;;
     install-global)
-        cmd_install_global "$2"
+        cmd_install_global "$2" "$3"
         ;;
     repo)
         if [ "$2" = "update" ]; then
