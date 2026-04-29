@@ -1,0 +1,4 @@
+interface:
+  display_name: "Flutter Arch MVVM"
+  short_description: "Flutter 四层架构与 MVVM 规范"
+  default_prompt: "Use $flutter-arch-mvvm to review this Flutter project against application/business/capability/foundation layering and MVVM boundaries."
