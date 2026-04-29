@@ -27,7 +27,7 @@
 
 | 层级 | 职责 |
 | --- | --- |
-| `application` | 应用装配层，负责入口、全局配置、初始化、启动任务、路由、应用根容器和跨模块编排 |
+| `application` | 应用装配层，负责入口、全局配置、启动任务定义、路由、应用根容器和跨模块串联配置 |
 | `business` | 业务模块层，负责项目内强业务模块和页面流程 |
 | `capability` | 能力组件层，负责公司或产品内可复用、但可能带项目定制的能力 |
 | `foundation` | 基础能力层，负责理论上可直接开源、放到任意 Flutter 项目都可用的底层能力 |
@@ -61,10 +61,15 @@ lib/
 ├── application/
 │   ├── config/
 │   │   ├── app_config.dart
-│   │   └── router_config.dart
+│   │   ├── router_config.dart
+│   │   ├── web_sdk_config.dart
+│   │   ├── login_sdk_config.dart
+│   │   └── bridge_sdk_config.dart
 │   ├── launch_task/
-│   │   ├── launch_task.dart
-│   │   └── launch_task_runner.dart
+│   │   ├── web_sdk_launch_task.dart
+│   │   ├── login_sdk_launch_task.dart
+│   │   ├── bridge_sdk_launch_task.dart
+│   │   └── remote_config_launch_task.dart
 │   └── pages/
 │       └── root_page.dart
 ├── business/
@@ -186,21 +191,29 @@ lib/
 
 ### 3.4 `application`：应用装配层
 
-`application` 负责把模块组合成完整应用，但不承载具体业务实现。
+`application` 负责把 `business`、`capability`、`foundation` 中的模块组合成完整应用。它主要处理入口接入、全局配置、启动任务、路由根配置、应用 Shell 和跨模块串联配置，但不承载具体页面业务实现。
 
 典型内容：
 
-- 启动配置、主题、环境、日志配置。
+- 启动配置、主题、环境、日志、SDK 参数等配置声明。
 - 路由总配置和根页面。
-- 启动任务编排，例如恢复登录态、初始化 SDK、拉取远程配置、缓存预热。
+- 具体启动任务，例如 WebSDK 启动任务、登录 SDK 启动任务、桥接 SDK 启动任务、远程配置任务、缓存预热任务。
 - 应用初始化、监听和跨模块编排。
 - 主 Tab 容器、应用 Shell。
+
+目录边界：
+
+- `config/` 放配置声明，例如路由配置、环境配置、SDK 初始化参数、主题配置。它只描述“用什么配置”，不直接执行启动副作用。
+- `launch_task/` 只放一个又一个具体启动任务。任务可以消费 `config/` 中的配置，并调用 `capability` 或 `foundation` 暴露的公开 API 完成初始化。
+- `launch_task/` 不负责启动任务排序、调度策略或运行框架。任务顺序可以放在 `main.dart` 中，也可以交给项目采用的启动任务框架 SDK；具体位置取决于框架实现。
+- `config/` 中的内容最终应被入口、路由、主题或启动任务消费才算生效。长期无人调用的配置文件不应保留。
 
 约束：
 
 - 不写页面业务细节。
 - 不直接访问底层实现细节。
-- 只承担全局组装和协调职责。
+- 只承担全局组装、启动接入和跨模块串联配置职责。
+- 不把启动任务框架、排序策略或一次性业务流程塞进具体任务目录。
 
 ## 4. UI 隔离规则
 
@@ -347,7 +360,9 @@ Model 负责数据结构定义。
 | 场景 | 放置或处理方式 |
 | --- | --- |
 | 新增应用启动、路由总表、环境切换 | `application/` |
-| 新增有明确顺序的启动任务，如恢复登录态、缓存预热、远程配置、SDK 初始化 | `application/launch_task/` |
+| 新增配置声明，如环境参数、路由配置、SDK 初始化参数 | `application/config/` |
+| 新增具体启动任务，如 WebSDK、登录 SDK、桥接 SDK、远程配置、缓存预热 | `application/launch_task/` |
+| 新增启动任务排序或调度入口 | `main.dart` 或项目采用的启动任务框架 SDK |
 | 新增项目内页面或业务流程 | `business/<module>/` |
 | 新增页面内列表项、卡片、导航条 | 当前业务模块 `view/` |
 | 新增多个业务共用的产品功能，如支付、分享、推送 | `capability/<name>/` |
@@ -513,7 +528,47 @@ class BaseViewModel extends ChangeNotifier {
 }
 ```
 
-### 13.2 `business/home/model/home_model.dart`
+### 13.2 `application/config/web_sdk_config.dart`
+
+```dart
+/// WebSDK 启动配置。
+///
+/// 只描述启动参数，不执行 SDK 初始化，也不保存运行状态。
+class WebSdkConfig {
+  const WebSdkConfig({
+    required this.appId,
+    required this.enableDebugLog,
+  });
+
+  final String appId;
+  final bool enableDebugLog;
+}
+```
+
+### 13.3 `application/launch_task/web_sdk_launch_task.dart`
+
+```dart
+import '../config/web_sdk_config.dart';
+
+/// WebSDK 启动任务。
+///
+/// 负责消费应用层配置并调用 WebSDK 公开初始化能力；任务顺序由 main 或启动任务框架 SDK 决定。
+class WebSdkLaunchTask {
+  const WebSdkLaunchTask(this._config);
+
+  final WebSdkConfig _config;
+
+  Future<void> run() async {
+    // 在启动阶段集中接入 SDK，避免初始化逻辑散落到页面或 ViewModel。
+    await WebSdk.initialize(
+      appId: _config.appId,
+      enableDebugLog: _config.enableDebugLog,
+    );
+  }
+}
+```
+
+### 13.4 `business/home/model/home_model.dart`
 
 ```dart
 /// 首页展示数据。
@@ -528,7 +583,7 @@ class HomeModel {
 }
 ```
 
-### 13.3 `business/home/repository/home_repository.dart`
+### 13.5 `business/home/repository/home_repository.dart`
 
 ```dart
 import '../model/home_model.dart';
@@ -547,7 +602,7 @@ class HomeRepository {
 }
 ```
 
-### 13.4 `business/home/view_model/home_view_model.dart`
+### 13.6 `business/home/view_model/home_view_model.dart`
 
 ```dart
 import 'package:xxx/foundation/base/base_view_model.dart';
@@ -577,7 +632,7 @@ class HomeViewModel extends BaseViewModel {
 }
 ```
 
-### 13.5 `business/home/page/home_page.dart`
+### 13.7 `business/home/page/home_page.dart`
 
 ```dart
 import 'package:flutter/material.dart';
@@ -637,7 +692,10 @@ class HomePage extends StatelessWidget {
 
 ### 14.2 架构边界
 
-- `application` 是否只负责入口、配置、初始化、启动任务、路由和编排？
+- `application` 是否只负责入口、配置、启动任务定义、路由、应用 Shell 和跨模块串联配置？
+- `application/config` 中的配置是否被入口、路由、主题或启动任务消费，避免只有声明没有生效？
+- `application/launch_task` 是否只放具体启动任务，没有混入排序、调度策略或启动任务框架实现？
+- SDK 初始化是否集中在启动任务或明确入口中，避免散落在页面、ViewModel 或业务流程里？
 - `business` 模块是否没有直接依赖其他业务模块？
 - `capability` 是否只暴露稳定能力，内部实现是否隔离？
 - `capability` 是否允许项目定制但没有绑死到单个业务页面？

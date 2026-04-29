@@ -25,7 +25,7 @@ View -> ViewModel -> Repository -> Model
 
 Layer intent:
 
-- `application`: app entry, routing, environment, global configuration, initialization, launch tasks, root shell, and cross-module orchestration.
+- `application`: app entry, routing, environment, global configuration, concrete launch tasks, root shell, and cross-module assembly. Launch task ordering belongs in `main` or the chosen launch-task framework, not in the task directory itself.
 - `business`: project-specific feature modules and screen flows.
 - `capability`: company or product reusable capabilities that may be customized for this project; migration to another company may require adaptation.
 - `foundation`: project-independent capabilities that should theoretically be open-source-ready and reusable in any Flutter project.
@@ -83,7 +83,7 @@ Use these quick decisions before creating files:
 | Question | Placement |
 | --- | --- |
 | Is it global startup, routing, environment, theme, root shell, or cross-module orchestration? | `application/` |
-| Is it an ordered startup task such as auth restore, cache warmup, remote config, or SDK initialization? | `application/launch_task/` |
+| Is it a concrete startup task such as auth restore, cache warmup, remote config, or SDK initialization? | `application/launch_task/` |
 | Is it a project-specific feature, page, or screen flow? | `business/` |
 | Is it company/product reusable but project-customized, such as pay/share/push/update/analytics? | `capability/` |
 | Is it reusable across arbitrary Flutter projects and theoretically open-source-ready? | `foundation/` |
