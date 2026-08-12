@@ -1,55 +1,30 @@
 # Traject 排除配置
-# 初始化时会被复制到项目的 .traject/exclude.yaml
-# 用户可根据项目情况增删
+# 此文件由初始化时自动生成，合并了通用排除规则和平台特定排除规则。
+#
+# 修改此文件来调整排除列表：
+#   - 添加排除：在对应字段中新增条目
+#   - 移除排除：删除对应条目
+#   - 下次 "Traject 更新" 时会使用最新的排除配置
+#
+# 原始 profile 定义位于：
+#   ~/.claude/skills/traject/references/excludes/
 
-# 排除的目录（不生成 .traject.md）
-exclude_dirs:
-  - node_modules/
-  - vendor/
-  - __pycache__/
-  - .git/
-  - .idea/
-  - .vscode/
-  - .traject/          # 索引系统自身目录
-  - dist/
-  - build/
-  - target/
-  - .venv/
-  - venv/
-  - env/
-  - .pytest_cache/
-  - .mypy_cache/
-  - .ruff_cache/
-  - .turbo/
-  - .next/
-  - .nuxt/
-  - .output/
-  - coverage/
-  - .codebuddy/
-  - .cursor/
-  - .windsurf/
+# 激活的 profile（记录初始化时检测到的项目类型）
+activated_profiles:
+  - common
+  # - flutter
+  # - node
 
-# 排除的文件（不列入索引）
-exclude_files:
-  - package-lock.json
-  - yarn.lock
-  - pnpm-lock.yaml
-  - go.sum
-  - Cargo.lock
-  - Gemfile.lock
-  - poetry.lock
-  - .DS_Store
-  - "*.log"
-  - "*.tmp"
-  - "*.swp"
-  - .env
-  - .env.local
-  - "*.env.*.local"
-  - "*.min.js"
-  - "*.min.css"
-  - "*.map"
+# 排除的目录（目录名匹配，适用于任意层级）
+exclude_dirs: []
 
-# 用户确认区域（初始化时填写）
+# 排除的路径（路径模式匹配，从项目根目录开始）
+exclude_paths: []
+
+# 排除的文件（文件名或 glob 模式匹配）
+exclude_files: []
+
+# 用户确认区域
 # user_confirmed: true
 # user_additions: []
 # user_removals: []

@@ -68,11 +68,21 @@ disable-model-invocation: true
 - 自下而上：叶子节点先于父节点生成
 - 叶子节点读源码，父节点读子级 `.traject.md`
 - 禁止跨级汇总（父节点不得读取孙子节点的 `.traject.md`）
+- 排除配置分层：通用 Profile + 平台 Profile → 合并写入项目 `.traject/exclude.yaml`
+- AI 启发式判断：初始化时自动检测可疑目录/文件，按置信度分级建议排除
 
 ### 批量约束
 - 每批处理 5-10 个目录
 - 每批完成后更新 `traversal-state.json`
 - 每批完成后询问用户是否继续
+
+### 排除约束
+- 通用排除项定义在 `references/excludes/common.yaml`（所有项目加载）
+- 平台排除项定义在 `references/excludes/` 下的对应文件（按项目类型自动加载）
+- 项目类型检测依据：`pubspec.yaml`（Flutter）、`package.json`（Node.js）等标志文件
+- 多 Profile 可合并：同时检测到多个平台标志时，合并所有对应规则
+- 路径级排除：通过 `exclude_paths` 字段匹配特定路径（如 `example/macos/Runner/`）
+- AI 判断规则定义在 `references/heuristics.md`，仅在 Profile 规则未覆盖的范围内生效
 
 ## 参考文件
 
@@ -81,7 +91,9 @@ disable-model-invocation: true
 | 文件 | 内容 | 何时加载 |
 |------|------|---------|
 | [`references/conventions.md`](references/conventions.md) | 格式硬性约束、拓扑排序、描述规则 | 生成 `.traject.md` 时 |
-| [`references/exclude.yaml`](references/exclude.yaml) | 默认排除配置 | 初始化和更新时 |
+| [`references/exclude.yaml`](references/exclude.yaml) | 排除配置模板（合并后写入项目） | 初始化和更新时 |
+| [`references/excludes/`](references/excludes/) | 分层排除 Profile（common.yaml、flutter.yaml 等） | 初始化时自动检测项目类型并合并 |
+| [`references/heuristics.md`](references/heuristics.md) | AI 启发式判断规则（硬规则 + 软规则） | 初始化扫描阶段 |
 | [`references/templates.md`](references/templates.md) | 所有文件模板 | 生成任何文件时 |
 | [`references/protocol.md`](references/protocol.md) | 完整命令步骤 + 完成标准 | 执行任何命令时 |
 
@@ -94,6 +106,9 @@ disable-model-invocation: true
 | `~/.claude/skills/traject/references/templates.md` | 文件模板 |
 | `~/.claude/skills/traject/references/conventions.md` | 格式规范 |
 | `~/.claude/skills/traject/references/exclude.yaml` | 排除配置模板 |
+| `~/.claude/skills/traject/references/excludes/common.yaml` | 通用排除 Profile |
+| `~/.claude/skills/traject/references/excludes/flutter.yaml` | Flutter 平台排除 Profile |
+| `~/.claude/skills/traject/references/heuristics.md` | AI 启发式判断规则 |
 
 ## 项目生成文件
 

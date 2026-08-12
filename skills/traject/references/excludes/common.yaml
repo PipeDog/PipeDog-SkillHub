@@ -1,0 +1,88 @@
+# Traject 通用排除配置
+# 适用于所有项目类型，初始化时始终加载
+#
+# 此文件定义了语言/框架无关的排除规则。
+# 平台特定规则请参见同目录下的其他 profile 文件（如 flutter.yaml）。
+
+# 排除的目录（目录名匹配，适用于任意层级）
+exclude_dirs:
+  # 版本控制
+  - .git/
+  - .svn/
+  - .hg/
+
+  # 依赖目录
+  - node_modules/
+  - vendor/
+  - .venv/
+  - venv/
+  - env/
+
+  # 构建产物
+  - dist/
+  - build/
+  - target/
+  - .next/
+  - .nuxt/
+  - .output/
+  - __pycache__/
+
+  # 缓存
+  - .pytest_cache/
+  - .mypy_cache/
+  - .ruff_cache/
+  - .turbo/
+  - .cache/
+
+  # IDE 配置
+  - .idea/
+  - .vscode/
+  - .cursor/
+  - .windsurf/
+  - .codebuddy/
+
+  # AI 工具目录
+  - .claude/
+  - .traject/
+
+  # 测试覆盖率
+  - coverage/
+
+# 排除的路径（路径模式匹配，包含 / 表示从项目根目录开始匹配）
+exclude_paths: []
+
+# 排除的文件（文件名或 glob 模式匹配）
+exclude_files:
+  # Lock 文件
+  - package-lock.json
+  - yarn.lock
+  - pnpm-lock.yaml
+  - go.sum
+  - Cargo.lock
+  - Gemfile.lock
+  - poetry.lock
+
+  # 系统文件
+  - .DS_Store
+  - .env
+  - .env.local
+  - "*.env.*.local"
+
+  # 日志和临时文件
+  - "*.log"
+  - "*.tmp"
+  - "*.swp"
+
+  # 压缩/最小化文件
+  - "*.min.js"
+  - "*.min.css"
+  - "*.map"
+
+  # 自动生成文件（通用模式）
+  - "*.generated.*"
+  - "*_generated.*"
+  - "*_generated.dart"
+  - "*.g.dart"
+  - "*.freezed.dart"
+  - "*.gr.dart"
+  - "*.mocks.dart"

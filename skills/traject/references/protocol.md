@@ -10,7 +10,8 @@
 
 - 当前目录为项目根目录
 - 项目根目录可写
-- 排除配置已从 `references/exclude.yaml` 复制
+- 排除 Profile 位于 `~/.claude/skills/traject/references/excludes/`
+- AI 启发式判断规则位于 `~/.claude/skills/traject/references/heuristics.md`
 
 ### 阶段 1：规划（Plan）
 
@@ -18,43 +19,79 @@
 
 1. 创建 `.traject/` 目录
 2. 创建 `.traject/plan/` 子目录
-3. 复制 `~/.claude/skills/traject/references/exclude.yaml` 到 `.traject/exclude.yaml`
+3. **检测项目类型并合并 Profile**：
+   a. 扫描项目根目录的标志文件，确定项目类型：
+      | 标志文件 | 项目类型 | 加载 Profile |
+      |---------|---------|-------------|
+      | `pubspec.yaml` | Flutter / Dart | `common.yaml` + `flutter.yaml` |
+      | `package.json` | Node.js / 前端 | `common.yaml` + `node.yaml`（未来） |
+      | `go.mod` | Go | `common.yaml` |
+      | `Cargo.toml` | Rust | `common.yaml` |
+      | `requirements.txt` / `pyproject.toml` | Python | `common.yaml` |
+      | 无匹配 | 通用项目 | `common.yaml` |
+   b. 多个标志文件同时存在时，合并所有匹配的 Profile（去重）
+   c. 读取 `~/.claude/skills/traject/references/heuristics.md` 加载 AI 判断规则
+4. 将合并后的排除配置写入 `.traject/exclude.yaml`（包含 `activated_profiles` 记录）
 
-**完成标准**：`.traject/`、`.traject/plan/` 目录存在，`.traject/exclude.yaml` 存在
+**完成标准**：`.traject/`、`.traject/plan/` 目录存在，`.traject/exclude.yaml` 已生成并包含激活的 profile 列表
 
 #### 步骤 1.2 — 扫描一级目录并确认排除
 
 1. 列出项目根目录下所有一级目录（排除 `.traject/` 自身）
-2. 读取 `.traject/exclude.yaml` 中的 `exclude_dirs`
-3. 将一级目录与排除列表比对，标记哪些将被排除
-4. 向用户展示：
+2. 读取 `.traject/exclude.yaml` 中的 `exclude_dirs`、`exclude_paths`、`exclude_files`
+3. **执行 AI 启发式判断**（按 `references/heuristics.md` 的规则）：
+   a. 对每个非 Profile 排除的一级目录，执行目录级硬规则检查（heuristics.md 第 2 节）
+   b. 对未匹配硬规则的目录，执行目录级软规则检查（heuristics.md 第 3 节）
+   c. 按置信度分级：高置信度（≥80%）→ 中置信度（50%-79%）→ 低置信度（<50%，保留）
+4. 将一级目录分为三组，向用户展示：
 
 ```
-发现以下一级目录：
+🔍 检测到项目类型：Flutter + Node.js
+
+🚫 自动排除（Profile 规则 + 高置信度 AI 判断）：
+  - .dart_tool/       （Flutter 工具缓存）
+  - Pods/             （CocoaPods 依赖）
+  - node_modules/     （Node 依赖）
+  - .git/             （版本控制）
+  - linux/            （Flutter Linux 平台，自动生成）
+  - elinux/           （Flutter Embedded Linux 平台）
+
+⚠️ 建议排除（中置信度 AI 判断）：
+  - test/             （测试代码，非核心实现）
+  - docs/             （文档，非代码实现）
+  - scripts/          （工具脚本，非核心代码）
 
 📂 将建立索引的目录：
-  - src/          （源码目录）
-  - config/       （配置目录）
-  - docs/         （文档目录）
+  - lib/              （Flutter 主代码）
+  - assets/           （资源文件）
+  - example/          （示例代码，lib/ 部分将索引）
 
-🚫 将排除的目录（来自 exclude.yaml）：
-  - node_modules/ （依赖目录）
-  - .git/         （版本控制）
-  - dist/         （构建产物）
-
-是否确认？如需调整请说明，如排除 src/ 只需输入「排除 src/」。
+是否确认？你可以：
+  - 直接确认（回车）
+  - 将目录从 🚫 移到 📂：「索引 test/」
+  - 将目录从 📂 移到 🚫：「排除 assets/」
+  - 将目录从 ⚠️ 移到 🚫：「排除 scripts/」
 ```
 
-5. 根据用户反馈更新 `exclude.yaml` 中的 `user_confirmed` 标记
+5. 特别标注：`test/` 和 `docs/` 默认在 Profile 中排除，但会在此处明确提示用户可调整
+6. 根据用户反馈更新 `exclude.yaml` 和 `user_confirmed` 标记
 
 **完成标准**：用户已确认排除列表，`exclude.yaml` 中 `user_confirmed: true`
 
 #### 步骤 1.3 — 全量扫描与排序
 
-1. 使用 `find` 命令扫描所有目录（排除 `exclude_dirs` 中的目录）：
+1. 使用 `find` 命令扫描所有目录，排除 `exclude_dirs` 和 `exclude_paths` 中的目录：
 
 ```bash
-find . -type d -not -path '*/\.*' | sort
+# 构建排除条件（同时处理目录名匹配和路径匹配）
+# 1. 目录名排除：-not -path '*/dirname/*'
+# 2. 路径排除：-not -path './specific/path/*'
+find . -type d \
+  -not -path '*/node_modules/*' \
+  -not -path '*/\.git/*' \
+  -not -path './example/macos/Runner/*' \
+  # ... 更多排除条件
+  | sort
 ```
 
 2. 对每个目录计算 depth（相对于项目根目录的层级数）
@@ -63,11 +100,11 @@ find . -type d -not -path '*/\.*' | sort
 
 ```json
 [
-  {"path": "src/components/buttons/", "depth": 3, "status": "pending"},
-  {"path": "src/components/forms/", "depth": 3, "status": "pending"},
-  {"path": "src/components/", "depth": 2, "status": "pending"},
-  {"path": "src/utils/", "depth": 2, "status": "pending"},
-  {"path": "src/", "depth": 1, "status": "pending"}
+  {"path": "lib/components/buttons/", "depth": 3, "status": "pending"},
+  {"path": "lib/components/forms/", "depth": 3, "status": "pending"},
+  {"path": "lib/components/", "depth": 2, "status": "pending"},
+  {"path": "lib/utils/", "depth": 2, "status": "pending"},
+  {"path": "lib/", "depth": 1, "status": "pending"}
 ]
 ```
 
@@ -75,7 +112,28 @@ find . -type d -not -path '*/\.*' | sort
 
 #### 步骤 1.4 — 写入遍历计划
 
-1. 生成 `traversal-state.json`，填入所有字段
+1. 生成 `traversal-state.json`，填入所有字段：
+
+```json
+{
+  "version": "1.0",
+  "created_at": "",
+  "last_updated": "",
+  "activated_profiles": ["common"],
+  "total_dirs": 0,
+  "processed_dirs": 0,
+  "pending_dirs": [],
+  "failed_dirs": [],
+  "current_batch": 0,
+  "batch_size": 7,
+  "excluded_dirs": [],
+  "ai_excluded": [],
+  "ai_suggested": [],
+  "status": "not_started",
+  "status_note": "等待用户确认排除列表"
+}
+```
+
 2. 写入 `.traject/plan/traversal-state.json`
 
 **完成标准**：`traversal-state.json` 存在，`status: "plan_ready"`，`total_dirs` > 0
@@ -115,21 +173,27 @@ find . -type d -not -path '*/\.*' | sort
 **情况 A：叶子目录**（该目录下无子目录，或所有子目录均被排除）
 
 1. 使用 `ls` 列出目录下的文件
-2. 过滤掉 `exclude_files` 中的文件
-3. 过滤掉二进制文件
-4. 对每个文件：
-   - 读取文件内容（对于大文件只读前 100 行）
+2. 过滤掉 `exclude_files` 中的文件（文件名模式匹配）
+3. 过滤掉二进制文件（扩展名匹配，见 heuristics.md 第 4.1 节）
+4. 过滤掉自动生成文件（文件名模式匹配，见 heuristics.md 第 4.2 节）
+5. 对剩余文件，执行 **文件级 AI 判断**（heuristics.md 第 5 节）：
+   - 读取文件头部（前 20 行）
+   - 检查是否包含 `@generated`、`auto-generated`、`DO NOT EDIT` 等标记
+   - 如命中 → 跳过索引（标注为自动生成）
+   - 如未命中 → 正常索引
+6. 对需要索引的文件：
+   - 读取文件内容（对于大文件只读前 100 行 + 后 50 行）
    - 提取关键符号（函数名、类名、导出）
    - 归纳职责（≤10 字）
-5. 生成 `.traject.md`，写入该目录
-6. 标记 `status: "processed"`
+7. 生成 `.traject.md`，写入该目录
+8. 标记 `status: "processed"`
 
 **情况 B：非叶子目录**（有子目录需要索引）
 
-1. 列出该目录下的子目录（排除 `exclude_dirs`）
+1. 列出该目录下的子目录（排除 `exclude_dirs` 和 `exclude_paths`）
 2. 对每个子目录，读取其 `.traject.md` 中的「职责」行
-3. 列出该目录下的直接文件（排除子目录和 `exclude_files`）
-4. 对直接文件，读取并提取关键符号
+3. 列出该目录下的直接文件（排除子目录、`exclude_files`、二进制文件、自动生成文件）
+4. 对直接文件，执行文件级 AI 判断（同情况 A 步骤 5），然后读取并提取关键符号
 5. 汇总子目录职责 + 直接文件信息，生成 `.traject.md`
 6. 标记 `status: "processed"`
 
@@ -145,6 +209,7 @@ find . -type d -not -path '*/\.*' | sort
 2. 格式检查：包含必需的 `# 目录索引`、`## 职责` 标题
 3. 描述长度检查：文件描述 ≤ 10 字
 4. 符号数检查：每个文件关键符号 ≤ 3 个
+5. 文件级 AI 判断复核：检查是否有遗漏的自动生成文件（抽样检查 10% 的已索引文件头部）
 
 如发现校验失败：
 - 标记该目录为 `failed`
@@ -486,18 +551,34 @@ done
 ### 6.4 二进制文件
 
 检测方式：
-- 扩展名：`.png`, `.jpg`, `.gif`, `.ico`, `.woff`, `.ttf`, `.pdf`, `.zip`, `.tar`
-- `file` 命令检测 MIME 类型
+- 扩展名匹配：见 `references/heuristics.md` 第 4.1 节完整列表
+- `file` 命令检测 MIME 类型兜底
 
 处理：跳过，不列入索引
 
-### 6.5 符号链接
+### 6.5 自动生成文件
+
+检测方式（按优先级）：
+1. 文件名模式匹配：见 `references/heuristics.md` 第 4.2 节
+2. 文件头部标记检测：读取前 20 行，检查 `@generated`、`auto-generated`、`DO NOT EDIT` 等标记
+3. 代码生成器特征检测：文件头部包含生成器名称（如 `generated by json_serializable`）
+
+处理：跳过，不列入索引。在 `traversal-state.json` 的 `ai_excluded` 字段中记录
+
+### 6.6 AI 判断与 Profile 规则冲突
+
+当 AI 判断认为 Profile 规则可能有问题时：
+- 不自动覆盖 Profile 规则
+- 在确认环节提示用户：「⚠️ `build/` 目录被 Profile 排除，但检测到其中包含手写脚本，建议从排除列表中移除」
+- 用户做最终决定
+
+### 6.7 符号链接
 
 - 跟随符号链接读取目标
 - 在路径中标注 `→ [target]`
 - 不重复索引（同一个真实路径只索引一次）
 
-### 6.6 排除后无剩余目录
+### 6.8 排除后无剩余目录
 
 ```
 ⚠️ 排除列表覆盖了所有目录，没有可索引的目录。
@@ -505,13 +586,20 @@ done
 请调整排除列表，至少保留一个源码目录。
 ```
 
-### 6.7 大文件（>1000 行）
+### 6.9 大文件（>1000 行）
 
 - 只读取前 100 行 + 后 50 行提取关键符号
 - 不读取完整文件内容（节省上下文）
 
-### 6.8 会话中断恢复
+### 6.10 会话中断恢复
 
 - 每次处理完一批后立即更新 `traversal-state.json`
 - 每批处理前检查 `traversal-state.json` 是否存在
 - 如果存在且 `status: "generating"`，自动进入恢复模式
+
+### 6.11 项目类型检测失败
+
+当项目根目录无可识别的标志文件时：
+- 仅加载 `common.yaml` Profile
+- 向用户提示：「未检测到已知项目类型，仅加载通用排除规则。如需添加平台特定排除，请手动编辑 `.traject/exclude.yaml`」
+- AI 判断仍正常执行（补充 Profile 覆盖不到的目录）

@@ -1,0 +1,48 @@
+# Traject Flutter 平台排除配置
+# 当检测到项目包含 pubspec.yaml 时自动加载
+#
+# 检测标志文件：pubspec.yaml
+
+# 排除的目录（目录名匹配，适用于任意层级）
+exclude_dirs:
+  # Flutter / Dart 工具缓存
+  - .dart_tool/
+
+  # iOS 平台
+  - Pods/
+  - ephemeral/
+  - .symlinks/
+  - .plugin_symlinks/
+  - Runner.xcodeproj/
+  - Runner.xcworkspace/
+  - Assets.xcassets/
+  - Base.lproj/
+
+  # macOS 平台
+  - "Chromium Embedded Framework.framework/"
+  - Configs/
+  - Flutter/
+
+  # Linux 平台
+  - linux/
+  - elinux/
+
+  # 文档和测试（默认排除，可调整）
+  - docs/
+  - test/
+
+# 排除的路径（路径模式匹配，包含 / 表示从项目根目录开始匹配）
+exclude_paths:
+  - example/macos/Runner/
+  - example/windows/runner/resources/
+
+# 排除的文件（文件名或 glob 模式匹配）
+exclude_files:
+  # Flutter 自动生成文件
+  - "*.g.dart"
+  - "*.freezed.dart"
+  - "*.gr.dart"
+  - "*.mocks.dart"
+  - "*.config.dart"
+  - "generated_plugin_registrant.dart"
+  - "*.arb"                    # 国际化资源（无代码逻辑）

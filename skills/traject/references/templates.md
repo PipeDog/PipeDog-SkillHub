@@ -111,6 +111,7 @@ total_files: [已索引文件总数]
   "version": "1.0",
   "created_at": "",
   "last_updated": "",
+  "activated_profiles": ["common"],
   "total_dirs": 0,
   "processed_dirs": 0,
   "pending_dirs": [],
@@ -118,6 +119,8 @@ total_files: [已索引文件总数]
   "current_batch": 0,
   "batch_size": 7,
   "excluded_dirs": [],
+  "ai_excluded": [],
+  "ai_suggested": [],
   "status": "not_started",
   "status_note": "等待用户确认排除列表"
 }
@@ -139,13 +142,16 @@ not_started → plan_ready → generating → generation_complete → completed
 | `version` | string | 状态格式版本 |
 | `created_at` | string | 首次创建时间 |
 | `last_updated` | string | 最后更新时间 |
+| `activated_profiles` | array | 激活的排除 Profile 列表（如 `["common", "flutter"]`） |
 | `total_dirs` | number | 待处理目录总数 |
 | `processed_dirs` | number | 已处理目录数 |
 | `pending_dirs` | array | 待处理目录列表（按拓扑序排列） |
 | `failed_dirs` | array | 处理失败的目录 |
 | `current_batch` | number | 当前批次号 |
 | `batch_size` | number | 每批处理目录数 |
-| `excluded_dirs` | array | 已排除的目录列表 |
+| `excluded_dirs` | array | Profile 规则排除的目录列表 |
+| `ai_excluded` | array | AI 硬规则自动排除的目录列表 |
+| `ai_suggested` | array | AI 软规则建议排除的目录列表（含置信度） |
 | `status` | string | 当前状态 |
 | `status_note` | string | 状态备注 |
 
@@ -199,17 +205,20 @@ AI **永远不应该**在没有先读取索引的情况下直接扫描项目目�
 
 **阶段 1：初始化计划**
 1. 创建 `.traject/` 目录和子目录
-2. 创建 `exclude.yaml`，包含默认排除列表
-3. 扫描根目录，向用户确认排除列表（只询问一级目录）
-4. 生成完整的遍历计划，写入 `plan/traversal-state.json`
-5. 向用户报告：「已生成索引计划，共需处理 X 个目录。是否开始生成？」
+2. 检测项目类型（扫描 `pubspec.yaml`、`package.json` 等标志文件），加载对应的排除 Profile
+3. 合并 Profile 规则，生成 `.traject/exclude.yaml`
+4. 执行 AI 启发式判断（按 `references/heuristics.md` 规则），对非 Profile 排除的目录进行智能分析
+5. 向用户展示分层排除列表（🚫 自动排除 / ⚠️ 建议排除 / 📂 将索引），确认排除范围
+6. 生成完整的遍历计划，写入 `plan/traversal-state.json`
+7. 向用户报告：「已生成索引计划，共需处理 X 个目录。是否开始生成？」
 
 **阶段 2：分步生成**
 1. 从 `pending_dirs` 中取出一批目录（建议 5-10 个）
 2. 对每个目录：
    a. 扫描其直接子目录和文件
-   b. 生成对应的 `.traject.md` 文件
-   c. 记录生成状态
+   b. 过滤自动生成文件（文件名模式 + 文件头部标记检测）
+   c. 生成对应的 `.traject.md` 文件
+   d. 记录生成状态
 3. 每完成一批，更新 `traversal-state.json`
 4. 询问用户：「已完成 X/Y 个目录，是否继续？」
 5. 重复直到全部完成
@@ -262,4 +271,39 @@ AI **永远不应该**在没有先读取索引的情况下直接扫描项目目�
 | `Traject 加载` | 新会话加载项目概览 |
 | `Traject 更新` | 增量更新索引 |
 | `Traject 继续` | 恢复中断的生成任务 |
+
+---
+
+## 七、exclude.yaml 模板（项目排除配置）
+
+```yaml
+# Traject 排除配置
+# 此文件由初始化时自动生成，合并了通用排除规则和平台特定排除规则。
+
+# 激活的 profile（记录初始化时检测到的项目类型）
+activated_profiles:
+  - common
+  # - flutter
+
+# 排除的目录（目录名匹配，适用于任意层级）
+exclude_dirs:
+  - node_modules/
+  - .git/
+  - dist/
+  - build/
+
+# 排除的路径（路径模式匹配，从项目根目录开始）
+exclude_paths:
+  # - example/macos/Runner/
+
+# 排除的文件（文件名或 glob 模式匹配）
+exclude_files:
+  - package-lock.json
+  - yarn.lock
+  - "*.log"
+
+# 用户确认区域
+user_confirmed: true
+user_additions: []
+user_removals: []
 ```
