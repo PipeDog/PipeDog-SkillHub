@@ -45,13 +45,13 @@ disable-model-invocation: true
 
 1. 首先确认 `.traject/manifest.md` 存在（若不存在，提示初始化）
 2. 从 `.traject/manifest.md` 定位到相关的一级目录
-3. 读取 `.traject/{一级目录路径}/.traject.md`，定位到二级目录
-4. 逐级深入，每次读取 `.traject/{当前路径}/.traject.md`，直到定位到具体文件
+3. 读取 `.traject/project/{一级目录路径}/.traject.md`，定位到二级目录
+4. 逐级深入，每次读取 `.traject/project/{当前路径}/.traject.md`，直到定位到具体文件
 5. **只读取目标文件的完整代码**，回答用户问题
 
 **禁止行为**：
 - ❌ 在未读取 manifest 的情况下直接扫描项目目录
-- ❌ 一次性读取所有 `.traject/**/.traject.md` 文件
+- ❌ 一次性读取所有 `.traject/project/**/.traject.md` 文件
 - ❌ 跳过索引直接读取代码文件
 
 ## 核心约束（所有命令通用）
@@ -120,7 +120,7 @@ disable-model-invocation: true
 | `.traject/manifest.md` | 根索引入口 |
 | `.traject/exclude.yaml` | 项目排除配置 |
 | `.traject/plan/traversal-state.json` | 遍历进度状态 |
-| `.traject/**/.traject.md` | 每个目录的索引文件（镜像项目目录结构存储于 `.traject/` 下） |
+| `.traject/project/**/.traject.md` | 每个目录的索引文件（镜像项目目录结构存储于 `.traject/project/` 下） |
 | `AGENTS.md` | AI 协议（Cursor/Windsurf 自动加载） |
 | `README.md` | 开发者使用说明（新建或追加） |
 

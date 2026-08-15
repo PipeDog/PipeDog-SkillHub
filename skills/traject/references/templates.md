@@ -167,7 +167,7 @@ not_started → plan_ready → generating → generation_complete → completed
 ## 核心原则
 
 AI **永远不应该**在没有先读取索引的情况下直接扫描项目目录。
-查询路径必须遵循：`.traject/manifest.md`（根索引） → `.traject/{一级目录}/.traject.md` → `.traject/{二级目录}/.traject.md` → ... → 目标文件。
+查询路径必须遵循：`.traject/manifest.md`（根索引） → `.traject/project/{一级目录}/.traject.md` → `.traject/project/{二级目录}/.traject.md` → ... → 目标文件。
 
 ## 一、新会话启动协议
 
@@ -187,13 +187,13 @@ AI **永远不应该**在没有先读取索引的情况下直接扫描项目目�
 当用户提出具体问题（如"XX 功能在哪里？"）时，AI 必须：
 
 1. 从 `.traject/manifest.md` 定位到相关的一级目录
-2. 读取 `.traject/{一级目录路径}/.traject.md`，定位到二级目录
-3. 逐级深入，每次读取 `.traject/{当前路径}/.traject.md`，直到定位到具体文件
+2. 读取 `.traject/project/{一级目录路径}/.traject.md`，定位到二级目录
+3. 逐级深入，每次读取 `.traject/project/{当前路径}/.traject.md`，直到定位到具体文件
 4. **只读取目标文件的完整代码**，回答用户问题
 
 **禁止行为**：
 - ❌ 在未读取 manifest 的情况下直接扫描项目
-- ❌ 一次性读取所有 `.traject/**/.traject.md` 文件
+- ❌ 一次性读取所有 `.traject/project/**/.traject.md` 文件
 - ❌ 跳过索引直接读取代码文件
 
 ## 三、索引生成协议
@@ -204,7 +204,7 @@ AI **永远不应该**在没有先读取索引的情况下直接扫描项目目�
 ### 执行步骤
 
 **阶段 1：初始化计划**
-1. 创建 `.traject/` 目录和子目录
+1. 创建 `.traject/`、`.traject/project/`、`.traject/plan/` 目录
 2. 检测项目类型（扫描 `pubspec.yaml`、`package.json` 等标志文件），加载对应的排除 Profile
 3. 合并 Profile 规则，生成 `.traject/exclude.yaml`
 4. 执行 AI 启发式判断（按 `references/heuristics.md` 规则），对非 Profile 排除的目录进行智能分析
@@ -217,7 +217,7 @@ AI **永远不应该**在没有先读取索引的情况下直接扫描项目目�
 2. 对每个目录：
    a. 扫描其直接子目录和文件
    b. 过滤自动生成文件（文件名模式 + 文件头部标记检测）
-   c. 生成对应的 `.traject/{路径}/.traject.md` 文件（如镜像目录不存在则 `mkdir -p` 创建）
+   c. 生成对应的 `.traject/project/{路径}/.traject.md` 文件（如镜像目录不存在则 `mkdir -p` 创建）
    d. 记录生成状态
 3. 每完成一批，更新 `traversal-state.json`
 4. 询问用户：「已完成 X/Y 个目录，是否继续？」
@@ -242,14 +242,14 @@ AI **永远不应该**在没有先读取索引的情况下直接扫描项目目�
 ### 执行步骤
 1. 检测变更文件（通过 `git status` 或用户描述）
 2. 定位变更文件所在目录
-3. 仅更新这些目录及其父级目录的 `.traject/{路径}/.traject.md`
+3. 仅更新这些目录及其父级目录的 `.traject/project/{路径}/.traject.md`
 4. 若新增/删除文件：更新文件列表
 5. 若新增/删除子目录：更新子目录列表 + 父级索引
 6. 报告更新摘要
 
 ## 五、.traject.md 文件规范
 
-每个目录的索引文件存储于 `.traject/{目录路径}/.traject.md`，必须遵循以下格式：
+每个目录的索引文件存储于 `.traject/project/{目录路径}/.traject.md`，必须遵循以下格式：
 
 - 标题：`# 目录索引: [从根目录开始的相对路径]`
 - 职责：`## 职责` + 一句话描述
