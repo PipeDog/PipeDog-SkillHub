@@ -185,19 +185,19 @@ find . -type d \
    - 读取文件内容（对于大文件只读前 100 行 + 后 50 行）
    - 提取关键符号（函数名、类名、导出）
    - 归纳职责（≤10 字）和摘要（15-25 字）
-7. 生成 `.traject.md`，写入该目录
+7. 生成 `.traject.md`，写入 `.traject/{当前目录路径}/.traject.md`（如目录不存在则 `mkdir -p` 创建）
 8. 标记 `status: "processed"`
 
 **情况 B：非叶子目录**（有子目录需要索引）
 
 1. 列出该目录下的子目录（排除 `exclude_dirs` 和 `exclude_paths`）
-2. 对每个子目录，读取其 `.traject.md` 中的「职责」行
+2. 对每个子目录，读取其 `.traject/{子目录路径}/.traject.md` 中的「职责」行
 3. 列出该目录下的直接文件（排除子目录、`exclude_files`、二进制文件、自动生成文件）
 4. 对直接文件，执行文件级 AI 判断（同情况 A 步骤 5），然后读取并提取关键符号
-5. 汇总子目录职责 + 直接文件信息，生成 `.traject.md`
+5. 汇总子目录职责 + 直接文件信息，生成 `.traject/{当前目录路径}/.traject.md`
 6. 标记 `status: "processed"`
 
-**关键约束**：非叶子目录的「职责」必须从子目录的 `.traject.md` 汇总而来，不得直接读取孙子目录的源码。
+**关键约束**：非叶子目录的「职责」必须从子目录的 `.traject/{子目录路径}/.traject.md` 汇总而来，不得直接读取孙子目录的源码。
 
 **完成标准**：每个目录的 `.traject.md` 已生成，内容符合格式规范
 
@@ -259,7 +259,7 @@ find . -type d \
 #### 步骤 3.1 — 生成 manifest.md
 
 1. 列出项目根目录下的一级目录（排除 `exclude_dirs`）
-2. 对每个一级目录，读取其 `.traject.md` 中的「职责」行
+2. 对每个一级目录，读取其 `.traject/{一级目录路径}/.traject.md` 中的「职责」行
 3. 汇总统计信息（总目录数、总文件数）
 4. 按模板生成 `manifest.md`，写入 `.traject/manifest.md`
 
@@ -296,7 +296,7 @@ find . -type d \
   - .traject/manifest.md（根索引）
   - .traject/exclude.yaml（排除配置）
   - .traject/plan/traversal-state.json（状态记录）
-  - X 个 .traject.md（分布在各目录）
+  - X 个 .traject.md（存储于 .traject/ 目录下）
 
 💡 使用提示：
   - 新会话：输入 "Traject 加载" 快速了解项目
@@ -392,26 +392,26 @@ find . -type d \
 
 对受影响目录集合中的每个目录，按 depth 降序处理：
 
-1. **叶子目录**：重新读取源码文件 → 重新生成 `.traject.md`
-2. **非叶子目录**：重新读取子级 `.traject.md` → 重新生成 `.traject.md`
-3. 比较新旧 `.traject.md` 内容：
+1. **叶子目录**：重新读取源码文件 → 重新生成 `.traject/{路径}/.traject.md`
+2. **非叶子目录**：重新读取子级 `.traject/{子目录路径}/.traject.md` → 重新生成 `.traject/{路径}/.traject.md`
+3. 比较新旧 `.traject/{路径}/.traject.md` 内容：
    - 内容相同 → 停止向上冒泡（该路径的父级无需更新）
    - 内容不同 → 继续向上冒泡
 
-**完成标准**：所有受影响目录的 `.traject.md` 已更新
+**完成标准**：所有受影响目录的 `.traject/{路径}/.traject.md` 已更新
 
 ### 步骤 3.4 — 处理新增/删除
 
 1. 检测是否有新增目录（不在索引中，但不在排除列表）
 2. 检测是否有删除目录（在索引中，但目录已不存在）
-3. 新增目录：按叶子/非叶子逻辑生成 `.traject.md`
-4. 删除目录：删除对应的 `.traject.md`，更新父级索引
+3. 新增目录：按叶子/非叶子逻辑生成 `.traject/{路径}/.traject.md`
+4. 删除目录：删除 `.traject/{路径}/.traject.md`，更新父级索引
 
 **完成标准**：新增/删除目录已处理
 
 ### 步骤 3.5 — 更新 manifest.md
 
-1. 如果一级目录的 `.traject.md` 有变化，更新 `manifest.md`
+1. 如果一级目录的 `.traject/{一级目录路径}/.traject.md` 有变化，更新 `manifest.md`
 2. 更新 `generated_at` 时间戳
 
 **完成标准**：manifest.md 已同步
@@ -494,9 +494,9 @@ grep -q "^## 职责" "$file" || echo "FAIL: $file 缺少职责节"
 ### 完整性校验
 
 ```bash
-# 检查所有非排除目录是否都有 .traject.md
+# 检查所有非排除目录是否都有对应的 .traject.md
 find . -type d -not -path '*/\.*' -not -path '*/node_modules/*' | while read dir; do
-  if [ ! -f "$dir/.traject.md" ]; then
+  if [ ! -f ".traject/$dir/.traject.md" ]; then
     echo "MISSING: $dir"
   fi
 done
@@ -506,7 +506,7 @@ done
 
 ```bash
 # 检查父目录的「子目录」列表是否与实际子目录一致
-# 父目录 .traject.md 中列出的子目录应等于实际存在的子目录
+# 父目录 .traject/{路径}/.traject.md 中列出的子目录应等于实际存在的子目录
 ```
 
 ---

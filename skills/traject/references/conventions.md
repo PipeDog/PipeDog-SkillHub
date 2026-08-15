@@ -70,25 +70,25 @@ depth=0: ./                        → 最后（manifest.md）
 ### 数据流
 
 ```
-叶子目录         → 读取源码文件     → 生成 .traject.md
-非叶子目录       → 读取子级 .traject.md → 生成 .traject.md
-根目录           → 读取一级 .traject.md → 生成 manifest.md
+叶子目录         → 读取源码文件     → 生成 .traject/{路径}/.traject.md
+非叶子目录       → 读取子级 .traject/{子路径}/.traject.md → 生成 .traject/{路径}/.traject.md
+根目录           → 读取一级 .traject/{路径}/.traject.md → 生成 .traject/manifest.md
 ```
 
 ### 禁止行为
 
-- ❌ 父目录读取孙子目录的 `.traject.md`（跨级汇总）
+- ❌ 父目录读取孙子目录的 `.traject/{路径}/.traject.md`（跨级汇总）
 - ❌ 父目录直接读取源码文件（应从子级索引获取信息）
-- ❌ 一次性读取所有 `.traject.md`（应逐级深入）
+- ❌ 一次性读取所有 `.traject/**/.traject.md`（应逐级深入）
 - ❌ 在子目录未完成前生成父目录索引
 
 ### 内容来源矩阵
 
 | 生成目标 | 「职责」来源 | 「子目录」来源 | 「文件」来源 |
 |----------|-------------|---------------|-------------|
-| 叶子 .traject.md | 分析源码文件 | 无（叶子） | 直接读取源码文件 |
-| 父级 .traject.md | 汇总子级职责 | 读取子级 .traject.md 的职责行 | 读取本目录直接文件 |
-| manifest.md | 汇总一级职责 | 读取一级 .traject.md 的职责行 | 不涉及 |
+| 叶子 .traject/{路径}/.traject.md | 分析源码文件 | 无（叶子） | 直接读取源码文件 |
+| 父级 .traject/{路径}/.traject.md | 汇总子级职责 | 读取子级 .traject/{子路径}/.traject.md 的职责行 | 读取本目录直接文件 |
+| manifest.md | 汇总一级职责 | 读取一级 .traject/{路径}/.traject.md 的职责行 | 不涉及 |
 
 ## 七、文件分类规则
 
